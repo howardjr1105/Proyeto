@@ -1,0 +1,123 @@
+use CV
+
+select * from Clientes
+
+alter procedure NClient
+@PN nvarchar(15),
+@SN nvarchar(15),
+@PA nvarchar(15),
+@SA nvarchar(15),
+@Dir nvarchar(70),
+@tel char(8),
+@dept int as
+declare @idD as int
+set @idD = (select Id_Dpto from Dept where Id_Dpto=@dept)
+declare @pdt as char(1)
+set @pdt = (select SUBSTRING(@tel,1,1))
+if(@PN = '' or @PA = '' or @Dir = '' or @tel = '')
+begin
+	print 'El nombre, apellido, direccion o telefono no puede ser nulo'
+end
+else
+begin
+	if(@dept = @idD)
+	begin
+		if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
+		begin
+			insert into Clientes(PN,SN,PA,SA,DirC,TelC,Id_Dpto) values(@PN,@SN,@PA,@SA,@Dir,@tel,@dept)
+		end
+		else
+		begin
+			print 'El primer digito del telefono debe ser 2,5,7 u 8'
+		end
+	end
+	else
+	BEGIN
+		print 'Departamento no registrado'
+	end
+end
+
+--select * from Dept
+NClient 'Howard','Emilio','Suarez', 'Cerrato','Camoapa','58390228',2
+
+alter table Clientes add estadoC bit default 1
+select * from Clientes
+
+alter procedure DBC
+@idC int as 
+declare @id as int
+set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
+if(@id=@idC)
+begin
+	update Clientes set estadoC = 0 where Id_Cliente = @idC
+end
+else
+begin
+	print 'Cliente no registrado'
+end
+
+DBC 3
+
+create procedure BClient
+@idC int as
+declare @id as int
+set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
+if(@idC = @id)
+begin
+	select * from Clientes where Id_Cliente = @idC and estadoC = 1
+end
+else
+begin
+	print 'Cliente no encontrado'
+end
+
+create procedure UpdateClient
+@idC int,
+@PN nvarchar(15),
+@SN nvarchar(15),
+@PA nvarchar(15),
+@SA nvarchar(15),
+@Dir nvarchar(70),
+@tel char(8),
+@dept int as
+declare @id int
+set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
+declare @idD as int
+set @idD = (select Id_Dpto from Dept where Id_Dpto=@dept)
+declare @pdt as char(1)
+set @pdt = (select SUBSTRING(@tel,1,1))
+if(@idC = @id)
+begin
+if(@PN = '' or @PA = '' or @Dir = '' or @tel = '')
+	begin
+		print 'El nombre, apellido, direccion o telefono no puede ser nulo'
+	end
+	else
+	begin
+		if(@dept = @idD)
+		begin
+			if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
+			begin
+				update Clientes set PN=@PN, SN=@SN,PA=@PA,SA=@SA,DirC=@Dir,TelC=@tel,Id_Dpto=@dept where Id_Cliente = @idC
+			end
+			else
+			begin
+				print 'El primer digito del telefono debe ser 2,5,7 u 8'
+			end
+		end
+		else
+		BEGIN
+			print 'Departamento no registrado'
+		end
+	end
+end
+else 
+begin
+	print'Cliente no registrado'
+end
+
+create procedure LClient
+as
+select * from Clientes where estadoC = 1
+
+LClient
