@@ -1,153 +1,109 @@
-use CV
-
-select * from Clientes
-
-alter procedure NClient
-@PN nvarchar(15),
-@SN nvarchar(15),
-@PA nvarchar(15),
-@SA nvarchar(15),
-@Dir nvarchar(70),
-@tel char(8),
-@dept int as
-declare @idD as int
-set @idD = (select Id_Dpto from Dept where Id_Dpto=@dept)
-declare @pdt as char(1)
-set @pdt = (select SUBSTRING(@tel,1,1))
-if(@PN = '' or @PA = '' or @Dir = '' or @tel = '')
-begin
-	print 'El nombre, apellido, direccion o telefono no puede ser nulo'
-end
-else
-begin
-	if(@dept = @idD)
-	begin
-		if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
-		begin
-			insert into Clientes(PN,SN,PA,SA,DirC,TelC,Id_Dpto) values(@PN,@SN,@PA,@SA,@Dir,@tel,@dept)
-		end
-		else
-		begin
-			print 'El primer digito del telefono debe ser 2,5,7 u 8'
-		end
-	end
-	else
-	BEGIN
-		print 'Departamento no registrado'
-	end
-end
-
---select * from Dept
-NClient 'Howard','Emilio','Suarez', 'Cerrato','Camoapa','58390228',2
-
-alter table Clientes add estadoC bit default 1
-select * from Clientes
-use CV
-
-select * from Clientes
+use Ferreteria
 
 create procedure NClient
+@CedC char(14),
 @PN nvarchar(15),
 @SN nvarchar(15),
 @PA nvarchar(15),
 @SA nvarchar(15),
-@Dir nvarchar(70),
 @tel char(8),
-@dept int as
+@Dir nvarchar(70),
+@dept int,
+@Mun int as
 declare @idD as int
-set @idD = (select Id_Dpto from Dept where Id_Dpto=@dept)
+set @idD = (select Id_Dept from Departamento where Id_Dept=@dept)
+declare @idM as int
+set @idM = (select Id_Mun from Municipio where Id_Mun = @idM and Id_Dept = @dept)
 declare @pdt as char(1)
 set @pdt = (select SUBSTRING(@tel,1,1))
-if(@PN = '' or @PA = '' or @Dir = '' or @tel = '')
+if(@PN = '' or @PA = '' or @Dir = '' or @tel = '' or @CedC = '')
 begin
-	print 'El nombre, apellido, direccion o telefono no puede ser nulo'
+	print 'El Nombre, Apellido, Cedula, Direccion o Telefono no pueden ser nulos'
 end
 else
 begin
-	if(@dept = @idD)
+	if(@pdt = '2' or @pdt = '5' or @pdt = '7' or @pdt = '8')
 	begin
-		if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
+		if(@dept = @idD)
 		begin
-			insert into Clientes(PN,SN,PA,SA,DirC,TelC,Id_Dpto) values(@PN,@SN,@PA,@SA,@Dir,@tel,@dept)
+			if(@Mun = @idM)
+			begin
+				insert into Clientes(Ced_C,PNC,SNC,PAC,SAC,TelC,DirC,Id_Dept,Id_Mun) values(@CedC,@PN,@SN,@PA,@SA,@tel,@Dir,@dept,@Mun)
+			end
+			else
+			begin
+				print 'Municipio no registrado'
+			end
 		end
-		else
+		else 
 		begin
-			print 'El primer digito del telefono debe ser 2,5,7 u 8'
+			print 'Departamento no registrado'
 		end
 	end
 	else
-	BEGIN
-		print 'Departamento no registrado'
+	begin
+		print 'El primer digito del telefono debe ser 2, 5 o 7'
 	end
 end
 
---select * from Dept
-NClient 'Howard','Emilio','Suarez', 'Cerrato','Camoapa','58390228',2
-
 alter table Clientes add estadoC bit default 1
-select * from Clientes
-update Clientes set estadoC = 1
 
 create procedure DBC
 @idC int as 
 declare @id as int
-set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
+set @id = (select Id_C from Clientes where Id_C = @idC)
 if(@id=@idC)
 begin
-	update Clientes set estadoC = 0 where Id_Cliente = @idC
+	update Clientes set estadoC = 0 where Id_C = @idC
 end
 else
 begin
 	print 'Cliente no registrado'
 end
 
-DBC 3
-
-create procedure BClient
-@idC int as
-declare @id as int
-set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
-if(@idC = @id)
-begin
-	select Id_Cliente,PN,SN,PA,SA,DirC,TelC,Id_Dpto from Clientes where Id_Cliente = @idC and estadoC = 1
-end
-else
-begin
-	print 'Cliente no encontrado'
-end
-
 create procedure UpdateClient
 @idC int,
+@Ced char(14),
 @PN nvarchar(15),
 @SN nvarchar(15),
 @PA nvarchar(15),
 @SA nvarchar(15),
 @Dir nvarchar(70),
 @tel char(8),
-@dept int as
+@dept int,
+@Mun int as
 declare @id int
-set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC and estadoC = 1)
+set @id = (select Id_C from Clientes where Id_C = @idC and estadoC = 1)
 declare @idD as int
-set @idD = (select Id_Dpto from Dept where Id_Dpto=@dept)
+set @idD = (select Id_Dept from Departamento where Id_Dept=@dept)
+declare @idM as int
+set @idM = (select Id_Mun from Municipio where Id_Dept = @dept and Id_Mun = @Mun)
 declare @pdt as char(1)
 set @pdt = (select SUBSTRING(@tel,1,1))
 if(@idC = @id)
 begin
-if(@PN = '' or @PA = '' or @Dir = '' or @tel = '')
+if(@PN = '' or @PA = '' or @Dir = '' or @tel = '' or @Ced = '')
 	begin
-		print 'El nombre, apellido, direccion o telefono no puede ser nulo'
+		print 'El nombre, apellido, cedula, direccion o telefono no puede ser nulo'
 	end
 	else
 	begin
 		if(@dept = @idD)
 		begin
-			if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
+			if(@Mun = @idM)
 			begin
-				update Clientes set PN=@PN, SN=@SN,PA=@PA,SA=@SA,DirC=@Dir,TelC=@tel,Id_Dpto=@dept where Id_Cliente = @idC
+				if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
+				begin
+					update Clientes set PNC=@PN, SNC=@SN,PAC=@PA,SAC=@SA,DirC=@Dir,Ced_C = @Ced, TelC=@tel,Id_Dept=@dept,Id_Mun = @Mun where Id_C = @idC
+				end
+				else
+				begin
+					print 'El primer digito del telefono debe ser 2,5,7 u 8'
+				end
 			end
 			else
 			begin
-				print 'El primer digito del telefono debe ser 2,5,7 u 8'
+				print 'Municipio no registrado'
 			end
 		end
 		else
@@ -161,88 +117,19 @@ begin
 	print'Cliente no registrado'
 end
 
-create procedure LClient
-as
-select Id_Cliente,PN,SN,PA,SA,DirC,TelC,Id_Dpto from Clientes where estadoC = 1
-
-select * from Clientes
-update Clientes set estadoC = 1 where Id_Cliente = 3
-LClient
-alter procedure DBC
-@idC int as 
-declare @id as int
-set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
-if(@id=@idC)
-begin
-	update Clientes set estadoC = 0 where Id_Cliente = @idC
-end
-else
-begin
-	print 'Cliente no registrado'
-end
-
-DBC 3
-
 create procedure BClient
 @idC int as
 declare @id as int
-set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
+set @id = (select Id_C from Clientes where Id_C = @idC)
 if(@idC = @id)
 begin
-	select * from Clientes where Id_Cliente = @idC and estadoC = 1
+	select Ced_C,PNC,SNC,PAC,SAC,DirC,TelC,NombMun,NomDept from Clientes inner join Departamento on Clientes.Id_Dept = Departamento.Id_Dept inner join Municipio on Clientes.Id_Mun = Municipio.Id_Mun where Id_C = @idC and estadoC = 1
 end
 else
 begin
 	print 'Cliente no encontrado'
 end
 
-create procedure UpdateClient
-@idC int,
-@PN nvarchar(15),
-@SN nvarchar(15),
-@PA nvarchar(15),
-@SA nvarchar(15),
-@Dir nvarchar(70),
-@tel char(8),
-@dept int as
-declare @id int
-set @id = (select Id_Cliente from Clientes where Id_Cliente = @idC)
-declare @idD as int
-set @idD = (select Id_Dpto from Dept where Id_Dpto=@dept)
-declare @pdt as char(1)
-set @pdt = (select SUBSTRING(@tel,1,1))
-if(@idC = @id)
-begin
-if(@PN = '' or @PA = '' or @Dir = '' or @tel = '')
-	begin
-		print 'El nombre, apellido, direccion o telefono no puede ser nulo'
-	end
-	else
-	begin
-		if(@dept = @idD)
-		begin
-			if(@pdt='2' or @pdt='5' or @pdt='7' or @pdt='8')
-			begin
-				update Clientes set PN=@PN, SN=@SN,PA=@PA,SA=@SA,DirC=@Dir,TelC=@tel,Id_Dpto=@dept where Id_Cliente = @idC
-			end
-			else
-			begin
-				print 'El primer digito del telefono debe ser 2,5,7 u 8'
-			end
-		end
-		else
-		BEGIN
-			print 'Departamento no registrado'
-		end
-	end
-end
-else 
-begin
-	print'Cliente no registrado'
-end
-
 create procedure LClient
 as
-select * from Clientes where estadoC = 1
-
-LClient
+select Ced_C,PNC,SNC,PAC,SAC,DirC,TelC from Clientes inner join Departamento on Clientes.Id_Dept = Departamento.Id_Dept inner join Municipio on Clientes.Id_Mun = Municipio.Id_Mun where estadoC = 1
